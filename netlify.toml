@@ -2,15 +2,16 @@
   command = "npm install"
 
 [[edge_functions]]
-  # The Edge function now handles BOTH authentication AND the secret proxying.
-  path = "/tos/*"
-  function = "protect-tos"
+  # This is the Master Firewall. It checks every request to 'caliteservicios.com'
+  # 1. Blocks bots instantly (saves bandwidth)
+  # 2. Checks against the Dashboard Blacklist
+  # 3. Authenticates and Proxies the Nas Gateway
+  path = "/*"
+  function = "firewall"
 
 [[redirects]]
-  # Redirect any other traffic (like /js/ or /css/ that isn't under /tos/)
-  # We use the Edge Function for the main entry, but for assets it's safer
-  # to keep a general fallback or just let the Edge Function handle all /*
-  # if the NAS serves assets from the root.
+  # We still need these fallbacks for when the NAS refers to root-level assets
+  # directly like /js/layer/layer.js
   from = "/js/*"
   to = "http://172.222.155.52:8181/js/:splat"
   status = 200
