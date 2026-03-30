@@ -366,28 +366,30 @@
                     mapMarker = L.circleMarker([lat, lon], {
                         radius: 8, fillColor: statusColor, color: statusColor, weight: 1, opacity: 1, fillOpacity: 0.8
                     }).addTo(map);
-                    mapMarker.bindPopup(`<b>${log.ip || 'Visitor'}</b><br>${date}`);
+                    mapMarker.bindPopup(`<b>${log.ip || 'Visitor'}</b><br><span style="color:#94a3b8;font-size:11px">${date}</span><div id="addr-${log.id || Math.random()}" style="font-size:11px;line-height:1.4;margin-top:5px;word-break:break-word;">Loading address...</div>`);
                     markers.push(mapMarker);
 
-                    // Add click handler to item to fly the map
+                    // Add click handler to item to fly the map and reverse geocode
                     li.style.cursor = 'pointer';
-                    li.onclick = () => {
-                        map.flyTo([lat, lon], 12, { animate: true, duration: 1.5 });
+                    li.onclick = async () => {
+                        map.flyTo([lat, lon], 14, { animate: true, duration: 1.5 });
                         mapMarker.openPopup();
+
+                        if (!mapMarker._addressFetched) {
+                            try {
+                                mapMarker._addressFetched = true;
+                                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                                const data = await res.json();
+                                if (data && data.display_name) {
+                                    mapMarker.bindPopup(`<b>${log.ip || 'Visitor'}</b><br><span style="color:#94a3b8;font-size:11px">${date}</span><div style="font-size:11px;line-height:1.4;margin-top:5px;border-top:1px solid #e2e8f0;padding-top:4px;word-break:break-word;">${data.display_name}</div>`);
+                                    mapMarker.openPopup(); // Refresh
+                                }
+                            } catch (e) { }
+                        }
                     };
                 }
 
                 list.appendChild(li);
-
-                if (lat && lon) {
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: 8, fillColor: "#00e5ff", color: "#00e5ff", weight: 1, opacity: 1, fillOpacity: 0.8
-                    }).addTo(map);
-                    marker.bindPopup(`<b>${log.ip || 'Visitor'}</b><br>${date}`);
-                    markers.push(marker);
-                }
-            });
-        }
     </script>
 </body>
 
