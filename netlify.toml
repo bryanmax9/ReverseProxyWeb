@@ -1,16 +1,16 @@
 # Netlify configuration file
 
-[[redirects]]
-  # Redirect the root domain exactly to the login page
-  from = "/"
-  to = "/tos/index.php?user/login"
-  status = 301
-  force = true
+[build]
+  # We need to run npm install so Netlify pulls the @netlify/blobs library before deploying
+  command = "npm install"
 
 [[redirects]]
-  # Proxy ALL other traffic to the TerraMaster NAS
-  # status 200 tells Netlify to act as a proxy (rewrite) rather than a redirect!
-  from = "/*"
-  to = "http://172.222.155.52:8181/:splat"
+  # Safely allow traffic to the proxy (172.222.155.52 NAS)
+  from = "/tos/*"
+  to = "http://172.222.155.52:8181/tos/:splat"
   status = 200
   force = true
+
+# The root "/" will automatically serve `index.html` (The Welcome Screen)
+# "/dashboard.html" will automatically serve the dashboard
+# "/.netlify/functions/*" will automatically serve your serverless API

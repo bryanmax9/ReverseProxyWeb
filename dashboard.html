@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CALITE | Access Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--panel-bg);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--text-main);
+        }
+
+        header span {
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .refresh-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .refresh-btn:hover {
+            opacity: 0.8;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .map-section {
+            flex: 1;
+            border-right: 1px solid var(--border);
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #1a2333;
+            /* Dark map fallback */
+        }
+
+        .logs-section {
+            width: 450px;
+            background-color: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logs-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .logs-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .log-card {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .log-card:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .log-time {
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .log-ip {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .log-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .log-detail span.label {
+            color: #64748b;
+            min-width: 60px;
+            display: inline-block;
+        }
+
+        .log-ua {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        /* Initial Password Overlay */
+        #auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .auth-box {
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            width: 350px;
+        }
+
+        .auth-box h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .auth-box input {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .auth-box input:focus {
+            border-color: var(--accent);
+        }
+
+        .auth-box button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #auth-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="auth-overlay">
+        <div class="auth-box">
+            <h2>Admin Access</h2>
+            <input type="password" id="adminPwd" placeholder="Enter strictly confidential password"
+                onkeydown="if(event.key === 'Enter') submitAuth()">
+            <button onclick="submitAuth()">Unlock Dashboard</button>
+            <div id="auth-error">Incorrect password. Access denied.</div>
+        </div>
+    </div>
+
+    <header>
+        <h1><span>CALITE</span> / Monitoring Dashboard</h1>
+        <button class="refresh-btn" onclick="fetchLogs()">Refresh Data</button>
+    </header>
+
+    <div class="main-content">
+        <div class="map-section">
+            <div id="map"></div>
+        </div>
+        <div class="logs-section">
+            <div class="logs-header" id="logsCount">Loading access logs...</div>
+            <ul class="logs-list" id="logsList">
+                <!-- Logs populated dynamically -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        let map;
+        let markers = [];
+        let adminToken = '';
+
+        function initMap() {
+            // Init dark themed map
+            map = L.map('map').setView([20, 0], 2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+        }
+
+        async function submitAuth() {
+            const pwd = document.getElementById('adminPwd').value;
+            if (!pwd) return;
+
+            adminToken = pwd;
+            document.getElementById('auth-error').style.display = 'none';
+
+            const success = await fetchLogs();
+            if (success) {
+                document.getElementById('auth-overlay').style.display = 'none';
+                if (!map) initMap();
+            } else {
+                document.getElementById('auth-error').style.display = 'block';
+            }
+        }
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/.netlify/functions/get-logs', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (res.status === 401) return false;
+
+                const logs = await res.json();
+                renderLogs(logs);
+                return true;
+            } catch (e) {
+                console.error("Failed to fetch logs:", e);
+                document.getElementById('logsCount').innerText = "Error loading logs. Check console.";
+                return true; // Return true here so we dismiss auth on network error instead of failing auth
+            }
+        }
+
+        function renderLogs(logs) {
+            document.getElementById('logsCount').innerText = `Total Access Events: ${logs.length}`;
+            const list = document.getElementById('logsList');
+            list.innerHTML = '';
+
+            // Clear old markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            // Sort logs newest first
+            logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            logs.forEach(log => {
+                // Render List item
+                const date = new Date(log.timestamp).toLocaleString();
+                const li = document.createElement('li');
+                li.className = 'log-card';
+
+                // Prefer GPS over GeoIP, Fallback to 'Unknown'
+                let lat = log.gps ? log.gps.lat : (log.geo ? log.geo.latitude : null);
+                let lon = log.gps ? log.gps.lng : (log.geo ? log.geo.longitude : null);
+
+                let locString = "Unknown Location";
+                if (log.geo && log.geo.city) {
+                    locString = `${log.geo.city}, ${log.geo.country}`;
+                }
+
+                li.innerHTML = `
+                <div class="log-time">${date}</div>
+                <div class="log-ip">${log.ip || 'Unknown IP'}</div>
+                <div class="log-detail"><span class="label">Location:</span> ${locString} ${log.gps ? '(GPS Accuracy)' : '(IP Match)'}</div>
+                <div class="log-detail"><span class="label">Timezone:</span> ${log.timeZone || 'Unknown'}</div>
+                <div class="log-ua">${log.userAgent || 'No User Agent'}</div>
+            `;
+                list.appendChild(li);
+
+                // Render Map Marker if coordinates exist
+                if (lat && lon) {
+                    const marker = L.circleMarker([lat, lon], {
+                        radius: 8,
+                        fillColor: "#00e5ff",
+                        color: "#00e5ff",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+                    marker.bindPopup(`<b>${log.ip}</b><br>${date}`);
+                    markers.push(marker);
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>
