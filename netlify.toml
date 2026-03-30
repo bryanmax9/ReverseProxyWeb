@@ -1,16 +1,18 @@
-# Netlify configuration file
-
 [build]
-  # We need to run npm install so Netlify pulls the @netlify/blobs library before deploying
   command = "npm install"
 
 [[redirects]]
-  # Safely allow traffic to the proxy (172.222.155.52 NAS)
-  from = "/tos/*"
-  to = "http://172.222.155.52:8181/tos/:splat"
+  # Ensure Serverless API endpoints are never proxied
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
   status = 200
   force = true
 
-# The root "/" will automatically serve `index.html` (The Welcome Screen)
-# "/dashboard.html" will automatically serve the dashboard
-# "/.netlify/functions/*" will automatically serve your serverless API
+[[redirects]]
+  # Proxy ALL traffic to the TerraMaster NAS
+  # "force = false" means it will serve index.html and dashboard.html locally if requested,
+  # but anything else (like the TerraMaster /js/ or /css/ files) gets fetched from the NAS!
+  from = "/*"
+  to = "http://172.222.155.52:8181/:splat"
+  status = 200
+  force = false
