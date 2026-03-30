@@ -262,14 +262,25 @@
     </div>
 
     <script>
+        // A highly reliable fallback to resolve IP Location via the browser directly
+        async function fetchExternalIpGeo() {
+            try {
+                const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+                return await res.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
         window.onload = async () => {
-            // Silently log visitors as soon as they hit the page to catch unauthorized users
+            const ipGeo = await fetchExternalIpGeo();
             const passivePayload = {
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 gps: null,
+                ipGeo: ipGeo,
                 status: "Page Visited (Unauthorized / Not Proceeded)",
                 timestamp: new Date().toISOString()
             };
@@ -305,13 +316,17 @@
                             lng: position.coords.longitude,
                             accuracy: position.coords.accuracy
                         }),
+                        // Resolve to null if the user hits "Block" or it fails
                         (error) => resolve(null),
-                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                        // INCREASED TIMEOUT to 15 seconds to allow user to read the popup and click Allow
+                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
                     );
                 });
             } catch (e) {
                 console.warn("GPS Location skipped or denied");
             }
+
+            const ipGeo = await fetchExternalIpGeo();
 
             const payload = {
                 userAgent: navigator.userAgent,
@@ -319,6 +334,7 @@
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 gps: gpsData,
+                ipGeo: ipGeo,
                 status: "Authorized (Accepted & Proceeded)",
                 timestamp: new Date().toISOString()
             };

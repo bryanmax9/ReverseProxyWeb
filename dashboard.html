@@ -328,13 +328,23 @@
                 const li = document.createElement('li');
                 li.className = 'log-card';
 
-                let lat = log.gps ? log.gps.lat : (log.geo ? log.geo.latitude : null);
-                let lon = log.gps ? log.gps.lng : (log.geo ? log.geo.longitude : null);
+                // Prioritize GPS -> GeoJS IP Resolver -> Netlify Edge Context
+                let lat = log.gps ? log.gps.lat : (log.ipGeo ? log.ipGeo.latitude : (log.geo ? log.geo.latitude : null));
+                let lon = log.gps ? log.gps.lng : (log.ipGeo ? log.ipGeo.longitude : (log.geo ? log.geo.longitude : null));
 
                 let locString = "Unknown Location";
-                if (log.geo && log.geo.city) {
+                if (log.ipGeo && log.ipGeo.city) {
+                    locString = `${log.ipGeo.city}, ${log.ipGeo.country}`;
+                } else if (log.geo && log.geo.city) {
                     locString = `${log.geo.city}, ${log.geo.country}`;
                 }
+
+                if (log.gps) {
+                    locString = `Browser Exact Location [Acc: ${Math.round(log.gps.accuracy)}m]`;
+                }
+
+                let accuracyType = log.gps ? '(Exact GPS Match)' : '(IP Match)';
+                if (locString === "Unknown Location") accuracyType = '';
 
                 let statusColor = log.status && log.status.includes('Authorized') ? '#10b981' : '#ef4444'; // Green or Red
                 let statusBadge = log.status ? `<div style="color: ${statusColor}; font-weight: bold; font-size: 11px; margin-bottom: 5px;">[${log.status.toUpperCase()}]</div>` : '';
@@ -342,8 +352,8 @@
                 li.innerHTML = `
                 ${statusBadge}
                 <div class="log-time">${date}</div>
-                <div class="log-ip">${log.ip || 'Unknown IP'}</div>
-                <div class="log-detail"><span class="label">Location:</span> ${locString} ${log.gps ? '(GPS Accuracy)' : '(IP Match)'}</div>
+                <div class="log-ip">${log.ip || (log.ipGeo ? log.ipGeo.ip : 'Unknown IP')}</div>
+                <div class="log-detail"><span class="label">Location:</span> ${locString} ${accuracyType}</div>
                 <div class="log-detail"><span class="label">Timezone:</span> ${log.timeZone || 'Unknown'}</div>
                 <div class="log-ua">${log.userAgent || 'No User Agent'}</div>
             `;
@@ -353,7 +363,7 @@
                     const marker = L.circleMarker([lat, lon], {
                         radius: 8, fillColor: "#00e5ff", color: "#00e5ff", weight: 1, opacity: 1, fillOpacity: 0.8
                     }).addTo(map);
-                    marker.bindPopup(`<b>${log.ip}</b><br>${date}`);
+                    marker.bindPopup(`<b>${log.ip || 'Visitor'}</b><br>${date}`);
                     markers.push(marker);
                 }
             });
