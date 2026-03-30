@@ -8,10 +8,10 @@ exports.handler = async (event, context) => {
 
     try {
         const payload = JSON.parse(event.body);
-        
+
         // Grab IP from Netlify's headers (fallback to x-forwarded-for if testing elsewhere)
         const ip = event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown';
-        
+
         // Grab built-in Netlify Geolocation headers
         let geo = {
             city: event.headers['x-nf-geo-city'] || null,
@@ -39,6 +39,12 @@ exports.handler = async (event, context) => {
         };
     } catch (error) {
         console.error("Failed to log access:", error);
-        return { statusCode: 500, body: "Internal Server Error" };
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                error: "Internal Server Error",
+                details: error.message
+            })
+        };
     }
 };

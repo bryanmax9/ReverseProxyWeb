@@ -100,6 +100,7 @@
             padding: 15px 20px;
             border-bottom: 1px solid var(--border);
             font-weight: 600;
+            word-wrap: break-word;
         }
 
         .logs-list {
@@ -214,6 +215,7 @@
             font-size: 14px;
             margin-top: 15px;
             display: none;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -256,7 +258,6 @@
         let adminToken = '';
 
         function initMap() {
-            // Init dark themed map
             map = L.map('map').setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -289,13 +290,26 @@
 
                 if (res.status === 401) return false;
 
-                const logs = await res.json();
-                renderLogs(logs);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    console.error("Server Error:", data);
+                    document.getElementById('logsCount').innerText = `API Error: ${data.details || data.error || 'Unknown'}`;
+                    return true; // Return true so overlay hides and we can see error
+                }
+
+                if (!Array.isArray(data)) {
+                    console.error("Expected array but got:", data);
+                    document.getElementById('logsCount').innerText = "Data format error: " + JSON.stringify(data);
+                    return true;
+                }
+
+                renderLogs(data);
                 return true;
             } catch (e) {
                 console.error("Failed to fetch logs:", e);
-                document.getElementById('logsCount').innerText = "Error loading logs. Check console.";
-                return true; // Return true here so we dismiss auth on network error instead of failing auth
+                document.getElementById('logsCount').innerText = "Network error loading logs.";
+                return true;
             }
         }
 
@@ -304,20 +318,16 @@
             const list = document.getElementById('logsList');
             list.innerHTML = '';
 
-            // Clear old markers
             markers.forEach(m => map.removeLayer(m));
             markers = [];
 
-            // Sort logs newest first
             logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             logs.forEach(log => {
-                // Render List item
                 const date = new Date(log.timestamp).toLocaleString();
                 const li = document.createElement('li');
                 li.className = 'log-card';
 
-                // Prefer GPS over GeoIP, Fallback to 'Unknown'
                 let lat = log.gps ? log.gps.lat : (log.geo ? log.geo.latitude : null);
                 let lon = log.gps ? log.gps.lng : (log.geo ? log.geo.longitude : null);
 
@@ -335,15 +345,9 @@
             `;
                 list.appendChild(li);
 
-                // Render Map Marker if coordinates exist
                 if (lat && lon) {
                     const marker = L.circleMarker([lat, lon], {
-                        radius: 8,
-                        fillColor: "#00e5ff",
-                        color: "#00e5ff",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.8
+                        radius: 8, fillColor: "#00e5ff", color: "#00e5ff", weight: 1, opacity: 1, fillOpacity: 0.8
                     }).addTo(map);
                     marker.bindPopup(`<b>${log.ip}</b><br>${date}`);
                     markers.push(marker);
@@ -351,7 +355,6 @@
             });
         }
     </script>
-
 </body>
 
 </html>

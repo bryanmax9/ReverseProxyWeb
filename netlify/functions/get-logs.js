@@ -1,21 +1,24 @@
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event, context) => {
-    // Security Check: simple hardcoded bearer token to protect the dashboard endpoint
-    const authHeader = event.headers['authorization'];
-    if (!authHeader || authHeader !== 'Bearer calite-admin-2026') {
-        return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized access" }) };
-    }
-
     try {
+        // Security Check
+        const authHeader = event.headers['authorization'];
+        if (!authHeader || authHeader !== 'Bearer calite-admin-2026') {
+            return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized access" }) };
+        }
+
         const store = getStore("access_logs");
+
+        // Ensure the store is queried safely
         const { blobs } = await store.list();
 
         const logs = [];
-        // Fetch the data for each log blob
-        for (const blob of blobs) {
-            const data = await store.getJSON(blob.key);
-            logs.push(data);
+        if (blobs && blobs.length > 0) {
+            for (const blob of blobs) {
+                const data = await store.getJSON(blob.key);
+                logs.push(data);
+            }
         }
 
         return {
@@ -24,6 +27,13 @@ exports.handler = async (event, context) => {
         };
     } catch (error) {
         console.error("Failed to retrieve logs:", error);
-        return { statusCode: 500, body: JSON.stringify({ error: "Internal Server Error" }) };
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                error: "Internal Server Error",
+                details: error.message,
+                stack: error.stack
+            })
+        };
     }
 };

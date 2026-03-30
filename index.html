@@ -1,237 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CALITE Tecnologia | Secure Gateway</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>CALITE Gateway | Secure Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0b1324;
-            --card-bg: rgba(20, 31, 55, 0.7);
-            --primary: #00e5ff;
-            --primary-hover: #00bcd4;
-            --text-main: #f0f4f8;
-            --text-muted: #9aa2b1;
+            --primary: #007bff;
+            --primary-hover: #0056b3;
+            --gray-light: #e0e0e0;
+            --gray-dark: #333;
+            --text-muted: #666;
+            --split-bg-left: #d1d5db;
+            /* Light/mid grey for left side */
+            --split-bg-right: #ffffff;
         }
 
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--bg-color) 0%, #030407 100%);
-            color: var(--text-main);
+            font-family: 'Roboto', sans-serif;
+            background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .container {
-            max-width: 600px;
-            width: 90%;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Abstract glowing orb decoration */
-        .container::before {
+        /* Dark overlay over background image */
+        body::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0,229,255,0.05) 0%, transparent 60%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
             z-index: 0;
+        }
+
+        .login-box {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            width: 800px;
+            height: 400px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel-left {
+            background-color: var(--split-bg-left);
+            width: 45%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        /* Subtle noise/gradient on the left panel to match reference */
+        .panel-left::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
             pointer-events: none;
         }
 
-        .content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .logo {
+        .panel-left h1 {
             font-size: 32px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            margin: 0 0 40px 0;
+            z-index: 1;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
-        .subtitle {
-            font-size: 14px;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 40px;
-            font-weight: 600;
-        }
-
-        .warning-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-left: 4px solid var(--primary);
-            padding: 20px;
-            border-radius: 0 10px 10px 0;
-            text-align: left;
-            margin-bottom: 40px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--text-muted);
-        }
-
-        .warning-box p { margin: 0 0 10px 0; }
-        .warning-box p:last-child { margin: 0; }
-        .warning-title { 
-            color: #fff; 
-            font-weight: 600; 
-            margin-bottom: 8px !important;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .button {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 16px 40px;
+        .panel-left .welcome-text {
             font-size: 16px;
-            font-weight: 600;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
-            display: inline-flex;
-            align-items: center;
+            line-height: 1.6;
+            font-weight: 400;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-left .version {
+            position: absolute;
+            bottom: 30px;
+            font-size: 12px;
+            opacity: 0.8;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-right {
+            background-color: var(--split-bg-right);
+            width: 55%;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
         }
 
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 229, 255, 0.5);
-            background: var(--primary-hover);
+        .panel-right h2 {
+            color: var(--gray-dark);
+            font-weight: 500;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
         }
 
-        .button:active {
-            transform: translateY(1px);
+        .warning-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .warning-text strong {
+            color: var(--gray-dark);
+        }
+
+        .btn-proceed {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-proceed:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-proceed:disabled {
+            background-color: #9cbfee;
+            cursor: not-allowed;
+        }
+
+        .footer-links {
+            margin-top: auto;
+            text-align: center;
+            font-size: 12px;
+            padding-top: 20px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
         }
 
         .loader {
             display: none;
-            border: 3px solid rgba(0,0,0,0.1);
-            border-top: 3px solid #000;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #fff;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             animation: spin 1s linear infinite;
-            margin-left: 10px;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="content">
-        <div class="logo">CALITE</div>
-        <div class="subtitle">Tecnologia Gateway</div>
-
-        <div class="warning-box">
-            <p class="warning-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                Restricted Private Network
-            </p>
-            <p>You are about to access a closed, internal platform belonging to CALITE Tecnologia intended solely for authorized personnel.</p>
-            <p>By clicking "PROCEED", you acknowledge and agree that your <strong>IP address, strict geographical location (GPS), browser session information, device identifiers, and cookies</strong> will be collected, logged, and monitored continuously. This data is rigorously tracked to ensure network security and prevent unauthorized access.</p>
+    <div class="login-box">
+        <!-- Left Panel (Grey side) -->
+        <div class="panel-left">
+            <h1>TOS 4.2.X</h1>
+            <div class="welcome-text">
+                Bienvenido a<br>
+                CALITE TECNOLOGIA<br>
+                Proyecto 2026-2027
+            </div>
+            <div class="version">
+                F2-210<br>
+                4.2.43-
+            </div>
         </div>
 
-        <button class="button" id="proceedBtn" onclick="handleProceed()">
-            <span>I Accept & Proceed</span>
-            <div class="loader" id="loader"></div>
-        </button>
+        <!-- Right Panel (White side) -->
+        <div class="panel-right">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                    </path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                Monitoreo de Red
+            </h2>
+
+            <div class="warning-text">
+                Está accediendo a una plataforma privada de uso exclusivo. Al hacer clic en el botón de abajo, autoriza
+                la recolección, registro y monitoreo continuo de su <strong>dirección IP, ubicación GPS exacta, sesión
+                    de navegador e identificadores del dispositivo</strong>.<br><br>
+                Estos datos son registrados estrictamente por propósitos de seguridad de IT corporativa.
+            </div>
+
+            <button class="btn-proceed" id="proceedBtn" onclick="handleProceed()">
+                <span>I Accept & Proceed</span>
+                <div class="loader" id="loader"></div>
+            </button>
+
+            <div class="footer-links">
+                <a href="#">¿Por qué veo esto? Políticas de Privacidad</a>
+            </div>
+        </div>
     </div>
-</div>
 
-<script>
-    async function handleProceed() {
-        const btn = document.getElementById('proceedBtn');
-        const loader = document.getElementById('loader');
-        const btnText = btn.querySelector('span');
+    <script>
+        async function handleProceed() {
+            const btn = document.getElementById('proceedBtn');
+            const loader = document.getElementById('loader');
+            const btnText = btn.querySelector('span');
 
-        btn.disabled = true;
-        btnText.innerText = 'Authenticating...';
-        loader.style.display = 'block';
+            btn.disabled = true;
+            btnText.innerText = 'Authenticating...';
+            loader.style.display = 'block';
 
-        let gpsData = null;
+            let gpsData = null;
 
-        // Try to get high accuracy GPS location from the browser
-        try {
-            gpsData = await new Promise((resolve, reject) => {
-                if (!navigator.geolocation) {
-                    reject(new Error('Geolocation not supported'));
-                    return;
-                }
-                navigator.geolocation.getCurrentPosition(
-                    (position) => resolve({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        accuracy: position.coords.accuracy
-                    }),
-                    (error) => resolve(null), // If denied or fails, resolve null and proceed anyway
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            });
-        } catch (e) {
-            console.warn("GPS Location skipped or denied");
+            try {
+                gpsData = await new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        reject(new Error('Geolocation not supported'));
+                        return;
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => resolve({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        }),
+                        (error) => resolve(null),
+                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    );
+                });
+            } catch (e) {
+                console.warn("GPS Location skipped or denied");
+            }
+
+            const payload = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                screenResolution: `${window.screen.width}x${window.screen.height}`,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                gps: gpsData,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                await fetch('/.netlify/functions/log-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                window.location.href = '/tos/index.php?user/login';
+            } catch (err) {
+                window.location.href = '/tos/index.php?user/login';
+            }
         }
-
-        // Collect browser specs
-        const payload = {
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            screenResolution: `${window.screen.width}x${window.screen.height}`,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            gps: gpsData,
-            timestamp: new Date().toISOString()
-        };
-
-        try {
-            // Send to our Netlify Function backend
-            const response = await fetch('/.netlify/functions/log-access', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            // Redirect regardless of API success/fail to keep UX smooth
-            window.location.href = '/tos/index.php?user/login';
-        } catch (err) {
-            console.error(err);
-            // Fallback redirect
-            window.location.href = '/tos/index.php?user/login';
-        }
-    }
-</script>
+    </script>
 
 </body>
+
 </html>
