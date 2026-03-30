@@ -14,7 +14,7 @@ export default async (req, context) => {
         const logs = [];
         if (blobs && blobs.length > 0) {
             for (const blob of blobs) {
-                const data = await store.getJSON(blob.key);
+                const data = await store.get(blob.key, { type: 'json' });
                 logs.push(data);
             }
         }
