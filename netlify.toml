@@ -1,0 +1,16 @@
+# Netlify configuration file
+
+[[redirects]]
+  # Redirect the root domain exactly to the login page
+  from = "/"
+  to = "/tos/index.php?user/login"
+  status = 301
+  force = true
+
+[[redirects]]
+  # Proxy ALL other traffic to the TerraMaster NAS
+  # status 200 tells Netlify to act as a proxy (rewrite) rather than a redirect!
+  from = "/*"
+  to = "http://172.222.155.52:8181/:splat"
+  status = 200
+  force = true
