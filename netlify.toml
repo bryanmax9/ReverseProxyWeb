@@ -2,16 +2,17 @@
   command = "npm install"
 
 [[edge_functions]]
-  # This is the Master Firewall. It checks every request to 'caliteservicios.com'
-  # 1. Blocks bots instantly (saves bandwidth)
-  # 2. Checks against the Dashboard Blacklist
-  # 3. Authenticates and Proxies the Nas Gateway
-  path = "/*"
+  path = "/tos/*"
   function = "firewall"
 
 [[redirects]]
-  # We still need these fallbacks for when the NAS refers to root-level assets
-  # directly like /js/layer/layer.js
+  # This rule ONLY fires if the Edge Function calls context.next() (meaning auth is OK)
+  from = "/tos/*"
+  to = "http://172.222.155.52:8181/tos/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/js/*"
   to = "http://172.222.155.52:8181/js/:splat"
   status = 200
