@@ -1,12 +1,11 @@
 [build]
   command = "npm install"
 
-[[redirects]]
-  # Ensure Serverless API endpoints are never proxied
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
+[[edge_functions]]
+  # This Edge function acts as a firewall for all requests to the NAS.
+  # If the user doesn't have the 'calite_auth' cookie, it rejects them back to the welcome screen.
+  path = "/tos/*"
+  function = "protect-tos"
 
 [[redirects]]
   # Proxy ALL traffic to the TerraMaster NAS

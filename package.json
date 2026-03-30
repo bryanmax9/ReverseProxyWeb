@@ -2,6 +2,7 @@
   "name": "calite-proxy",
   "version": "1.0.0",
   "description": "CALITE Reverse Proxy and Gateway",
+  "type": "module",
   "dependencies": {
     "@netlify/blobs": "^7.1.0"
   }

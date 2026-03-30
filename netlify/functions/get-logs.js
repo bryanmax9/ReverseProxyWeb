@@ -1,16 +1,14 @@
-const { getStore } = require("@netlify/blobs");
+import { getStore } from "@netlify/blobs";
 
-exports.handler = async (event, context) => {
+export default async (req, context) => {
     try {
-        // Security Check
-        const authHeader = event.headers['authorization'];
+        const authHeader = req.headers.get('authorization');
         if (!authHeader || authHeader !== 'Bearer calite-admin-2026') {
-            return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized access" }) };
+            return new Response(JSON.stringify({ error: "Unauthorized access" }), { status: 401 });
         }
 
+        // Access logs automatically get injected Blobs context since this is a Netlify V2 function
         const store = getStore("access_logs");
-
-        // Ensure the store is queried safely
         const { blobs } = await store.list();
 
         const logs = [];
@@ -21,19 +19,19 @@ exports.handler = async (event, context) => {
             }
         }
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify(logs)
-        };
+        return new Response(JSON.stringify(logs), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+        });
     } catch (error) {
         console.error("Failed to retrieve logs:", error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                error: "Internal Server Error",
-                details: error.message,
-                stack: error.stack
-            })
-        };
+        return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message, stack: error.stack }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
+};
+
+export const config = {
+    path: "/.netlify/functions/get-logs"
 };

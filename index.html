@@ -308,8 +308,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                document.cookie = "calite_auth=verified; path=/; max-age=86400; SameSite=Strict";
                 window.location.href = '/tos/index.php?user/login';
             } catch (err) {
+                document.cookie = "calite_auth=verified; path=/; max-age=86400; SameSite=Strict";
                 window.location.href = '/tos/index.php?user/login';
             }
         }
