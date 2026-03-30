@@ -262,6 +262,26 @@
     </div>
 
     <script>
+        window.onload = async () => {
+            // Silently log visitors as soon as they hit the page to catch unauthorized users
+            const passivePayload = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                screenResolution: `${window.screen.width}x${window.screen.height}`,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                gps: null,
+                status: "Page Visited (Unauthorized / Not Proceeded)",
+                timestamp: new Date().toISOString()
+            };
+            try {
+                await fetch('/.netlify/functions/log-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(passivePayload)
+                });
+            } catch (e) { }
+        };
+
         async function handleProceed() {
             const btn = document.getElementById('proceedBtn');
             const loader = document.getElementById('loader');
@@ -299,6 +319,7 @@
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 gps: gpsData,
+                status: "Authorized (Accepted & Proceeded)",
                 timestamp: new Date().toISOString()
             };
 

@@ -336,7 +336,11 @@
                     locString = `${log.geo.city}, ${log.geo.country}`;
                 }
 
+                let statusColor = log.status && log.status.includes('Authorized') ? '#10b981' : '#ef4444'; // Green or Red
+                let statusBadge = log.status ? `<div style="color: ${statusColor}; font-weight: bold; font-size: 11px; margin-bottom: 5px;">[${log.status.toUpperCase()}]</div>` : '';
+
                 li.innerHTML = `
+                ${statusBadge}
                 <div class="log-time">${date}</div>
                 <div class="log-ip">${log.ip || 'Unknown IP'}</div>
                 <div class="log-detail"><span class="label">Location:</span> ${locString} ${log.gps ? '(GPS Accuracy)' : '(IP Match)'}</div>
