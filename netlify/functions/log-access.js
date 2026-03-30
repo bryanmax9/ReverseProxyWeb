@@ -7,20 +7,30 @@ export default async (req, context) => {
 
     try {
         const payload = await req.json();
-        const ip = req.headers.get('x-nf-client-connection-ip') || req.headers.get('x-forwarded-for') || 'unknown';
+        const ip = context.ip || req.headers.get('x-nf-client-connection-ip') || req.headers.get('x-forwarded-for') || 'unknown';
 
-        let geo = {
-            city: req.headers.get('x-nf-geo-city') || null,
-            country: req.headers.get('x-nf-geo-country') || null,
-            latitude: req.headers.get('x-nf-geo-latitude') || null,
-            longitude: req.headers.get('x-nf-geo-longitude') || null
+        let geoData = {
+            city: context.geo?.city || req.headers.get('x-nf-geo-city') || null,
+            country: context.geo?.country?.name || req.headers.get('x-nf-geo-country') || null,
+            latitude: context.geo?.latitude || req.headers.get('x-nf-geo-latitude') || null,
+            longitude: context.geo?.longitude || req.headers.get('x-nf-geo-longitude') || null,
+            timezone: context.geo?.timezone || null
         };
+
+        let backendIpGeo = null;
+        if (ip !== 'unknown') {
+            try {
+                const res = await fetch(`https://get.geojs.io/v1/ip/geo/${ip}.json`);
+                if (res.ok) backendIpGeo = await res.json();
+            } catch (e) { }
+        }
 
         const logEntry = {
             id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
             ...payload,
             ip,
-            geo,
+            geo: geoData,
+            backendIpGeo: backendIpGeo,
             receivedAt: new Date().toISOString()
         };
 

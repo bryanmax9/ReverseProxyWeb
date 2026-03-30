@@ -272,13 +272,23 @@
             }
         }
 
-        window.onload = async () => {
-            const ipGeo = await fetchExternalIpGeo();
-            const passivePayload = {
+        function getFootprint() {
+            return {
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                platform: navigator.platform || navigator.userAgentData?.platform || 'Unknown',
+                cookieEnabled: navigator.cookieEnabled
+            };
+        }
+
+        window.onload = async () => {
+            const ipGeo = await fetchExternalIpGeo();
+            const passivePayload = {
+                ...getFootprint(),
                 gps: null,
                 ipGeo: ipGeo,
                 status: "Page Visited (Unauthorized / Not Proceeded)",
@@ -329,10 +339,7 @@
             const ipGeo = await fetchExternalIpGeo();
 
             const payload = {
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                screenResolution: `${window.screen.width}x${window.screen.height}`,
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                ...getFootprint(),
                 gps: gpsData,
                 ipGeo: ipGeo,
                 status: "Authorized (Accepted & Proceeded)",

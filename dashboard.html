@@ -328,13 +328,15 @@
                 const li = document.createElement('li');
                 li.className = 'log-card';
 
-                // Prioritize GPS -> GeoJS IP Resolver -> Netlify Edge Context
-                let lat = log.gps ? log.gps.lat : (log.ipGeo ? log.ipGeo.latitude : (log.geo ? log.geo.latitude : null));
-                let lon = log.gps ? log.gps.lng : (log.ipGeo ? log.ipGeo.longitude : (log.geo ? log.geo.longitude : null));
+                // Prioritize GPS -> GeoJS Client -> GeoJS Backend -> Netlify Edge Context
+                let lat = log.gps ? log.gps.lat : (log.ipGeo ? log.ipGeo.latitude : (log.backendIpGeo ? log.backendIpGeo.latitude : (log.geo ? log.geo.latitude : null)));
+                let lon = log.gps ? log.gps.lng : (log.ipGeo ? log.ipGeo.longitude : (log.backendIpGeo ? log.backendIpGeo.longitude : (log.geo ? log.geo.longitude : null)));
 
                 let locString = "Unknown Location";
                 if (log.ipGeo && log.ipGeo.city) {
                     locString = `${log.ipGeo.city}, ${log.ipGeo.country}`;
+                } else if (log.backendIpGeo && log.backendIpGeo.city) {
+                    locString = `${log.backendIpGeo.city}, ${log.backendIpGeo.country}`;
                 } else if (log.geo && log.geo.city) {
                     locString = `${log.geo.city}, ${log.geo.country}`;
                 }
@@ -354,9 +356,27 @@
                 <div class="log-time">${date}</div>
                 <div class="log-ip">${log.ip || (log.ipGeo ? log.ipGeo.ip : 'Unknown IP')}</div>
                 <div class="log-detail"><span class="label">Location:</span> ${locString} ${accuracyType}</div>
-                <div class="log-detail"><span class="label">Timezone:</span> ${log.timeZone || 'Unknown'}</div>
+                <div class="log-detail"><span class="label">Time/Lang:</span> ${log.timeZone || 'Unknown'} | ${log.language || '?'}</div>
+                <div class="log-detail" style="color:#cbd5e1"><span class="label">Hardware:</span> Platform: ${log.platform || 'Unknown'} | CPU Cores: ${log.hardwareConcurrency || '?'} | RAM: ${log.deviceMemory || '?'}GB</div>
                 <div class="log-ua">${log.userAgent || 'No User Agent'}</div>
             `;
+
+                let mapMarker = null;
+                if (lat && lon) {
+                    mapMarker = L.circleMarker([lat, lon], {
+                        radius: 8, fillColor: statusColor, color: statusColor, weight: 1, opacity: 1, fillOpacity: 0.8
+                    }).addTo(map);
+                    mapMarker.bindPopup(`<b>${log.ip || 'Visitor'}</b><br>${date}`);
+                    markers.push(mapMarker);
+
+                    // Add click handler to item to fly the map
+                    li.style.cursor = 'pointer';
+                    li.onclick = () => {
+                        map.flyTo([lat, lon], 12, { animate: true, duration: 1.5 });
+                        mapMarker.openPopup();
+                    };
+                }
+
                 list.appendChild(li);
 
                 if (lat && lon) {
